@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+
+  api-gateway:
+    build: ./api-gateway
+    volumes:
+      - ./api-gateway/src:/usr/app/src
+    ports:
+      - "7000:7000"
+
+  chat-app:
+    build: ./chat-app
+    volumes:
+      - ./chat-app/src:/usr/app/src
+    ports:
+      - "7001:7001"
+    env_file:
+      - ./chat-app/.env
+    depends_on:
+      - api-gateway
+
+  chat-service:
+    build: ./chat-service
+    volumes:
+      - ./chat-service/src:/usr/app/src
+    ports:
+      - "7100:7100"
+    depends_on:
+      - chat-service-db
+
+  chat-service-db:
+    image: mysql:5.7.20
+    ports:
+      - "7200:3360"
+    env_file:
+      - ./chat-service/.env
+
+  users-service:
+    build: ./users-service
+    volumes:
+      - ./users-service/src:/usr/app/src
+    ports:
+      - "7101:7101"
+    depends_on:
+      - users-service-db
+
+  users-service-db:
+    image: mysql:5.7.20
+    ports:
+      - "7201:3306"
+    env_file:
+      - ./users-service/.env
+
+  phpmyadmin:
+    image: phpmyadmin
+    volumes:
+      - ./phpmyadmin/config.user.inc.php:/etc/phpmyadmin/config.user.inc.php
+    links:
+      - "users-service-db:users-service-db"
+      - "chat-service-db:chat-service-db"
+    ports:
+      - "7300:80"
+    depends_on:
+      - chat-service-db
+      - users-service-db
