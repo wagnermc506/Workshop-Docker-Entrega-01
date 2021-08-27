@@ -8,4 +8,6 @@ RUN "yarn"
 
 COPY . .
 
+EXPOSE 7001
+
 CMD ["yarn", "watch"]
